@@ -35,12 +35,8 @@ func (c *Client) Proxy() {
 	for {
 		msg, err := c.stream.Recv()
 		if err != nil {
-			if err == io.EOF {
-				log.Printf("received EOF. stream closed. exiting proxy loop")
-				return
-			}
 			log.Printf("failed to call Recv on stream: %s", err)
-			continue
+			return
 		}
 
 		// type switch on received msg
@@ -48,7 +44,7 @@ func (c *Client) Proxy() {
 		case *pb.ServerClient_Httpreq:
 			// unpack request byte array from proto
 			reqBuf := bytes.NewBuffer(x.Httpreq.Request)
-			// do Proxy
+			// perform proxy. keeping this synchronous for now because stream.Send() called in this method is not thread safe
 			err := c.doProxy(reqBuf)
 			if err != nil {
 				log.Printf("proxy request failed: %s", err)
