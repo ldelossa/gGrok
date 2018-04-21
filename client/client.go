@@ -33,17 +33,17 @@ func NewClient(stream pb.GGrok_StreamClient, httpClient *http.Client, proxyTarge
 func (c *Client) Proxy() {
 	// begin proxy loop
 	for {
-		msg, err := c.stream.Recv()
+		m, err := c.stream.Recv()
 		if err != nil {
 			log.Printf("failed to call Recv on stream: %s", err)
 			return
 		}
 
 		// type switch on received msg
-		switch x := msg.Servermsg.(type) {
+		switch mm := m.Servermsg.(type) {
 		case *pb.ServerClient_Httpreq:
 			// unpack request byte array from proto
-			reqBuf := bytes.NewBuffer(x.Httpreq.Request)
+			reqBuf := bytes.NewBuffer(mm.Httpreq.Request)
 			// perform proxy. keeping this synchronous for now because stream.Send() called in this method is not thread safe
 			err := c.doProxy(reqBuf)
 			if err != nil {
